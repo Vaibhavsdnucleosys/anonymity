@@ -36,15 +36,20 @@ const Home = () => {
   const [userEmail, setUserEmail] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-    if (token) {
-      const user = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
-      if (user && user.email) {
-        setIsLoggedIn(true);
-        setUserEmail(user.email);
-      }
+ useEffect(() => {
+  const token = sessionStorage.getItem("token");
+  const user = sessionStorage.getItem("user");
+  
+  if (token && user) {
+    try {
+      const userData = JSON.parse(user);
+      setIsLoggedIn(true);
+      setUserEmail(userData.email);
+    } catch (e) {
+      console.error("Failed to parse user data", e);
+      logout();
     }
+  }
 
     const handleScroll = () => {
       const sections = document.querySelectorAll("section[id]");
@@ -101,51 +106,70 @@ const handleEmailLogin = async (e: React.FormEvent) => {
 
 
 
-
-
 const handleGoogleLoginSuccess = async (credentialResponse: any) => {
   try {
     setError(""); // Clear previous errors
     
-    // 1. Immediately decode the Google credential to check expiration
-    const decodedGoogleToken = jwtDecode(credentialResponse.credential);
+    // 1. Get the credential from the response
+    const googleToken = credentialResponse.credential;
+    
+    if (!googleToken || typeof googleToken !== 'string') {
+      throw new Error("Invalid Google credential received");
+    }
+
+    // 2. Immediately decode the Google credential to check validity
+    const decodedGoogleToken = jwtDecode(googleToken);
+    console.log("Decoded Google token:", decodedGoogleToken);
+
     if (decodedGoogleToken.exp! * 1000 < Date.now()) {
       throw new Error("Google token expired - please try again");
     }
 
-    // 2. Send to your backend
+    // 3. Send to your backend
     const response = await axios.post(API_ENDPOINTS.GoogleLogin, {
-      token: credentialResponse.credential
+      token: googleToken // Send just the token string
     });
 
-    // 3. Validate your own JWT token
-    const decodedToken = jwtDecode<{ exp?: number; email?: string; userName?: string }>(response.data.token);
-    if (!decodedToken.exp || decodedToken.exp * 1000 < Date.now()) {
-      throw new Error("Server token expired immediately");
+    console.log("Backend response:", response.data);
+
+    // 4. Handle backend response
+    if (!response.data?.token) {
+      throw new Error("No token received from backend");
     }
 
-    // 4. Store token consistently (only sessionStorage)
-    sessionStorage.setItem("token", response.data.token);
+    const backendToken = response.data.token;
+    const userData = response.data.user;
+
+    // 5. Store session
+    sessionStorage.setItem("token", backendToken);
     sessionStorage.setItem("user", JSON.stringify({
-      email: decodedToken.email,
-      userName: decodedToken.userName,
+      email: userData.email,
+      userName: userData.userName,
       authProvider: 'Google'
     }));
 
-    // 5. Set axios defaults
-    axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+    // 6. Set axios defaults
+    axios.defaults.headers.common['Authorization'] = `Bearer ${backendToken}`;
 
-    // 6. Update state
+    // 7. Update state
     setIsLoggedIn(true);
-    setUserEmail(decodedToken.email || '');
+    setUserEmail(userData.email);
     
-    // 7. Navigate
+    // 8. Show welcome message
+    alert(`Welcome ${userData.userName}!`);
+    
+    // 9. Navigate
     navigate('/');
+    window.dispatchEvent(new Event('storage'));
     
   } catch (error) {
     console.error('Google login failed:', error);
     setError("Login failed. Please try again.");
-    logout(); // Clear any partial auth state
+    
+    // Clean up on error
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    delete axios.defaults.headers.common['Authorization'];
   }
 };
   return (
