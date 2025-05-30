@@ -5,4 +5,5 @@ export const API_ENDPOINTS = {
     User: `${common_API_URL}User`,
     Login: `${common_API_URL}User/login`,
      GoogleLogin: `${common_API_URL}User/google`,
+    Register: `${common_API_URL}User`,
 }

@@ -151,6 +151,81 @@
 
 // export default GoogleLoginButton;
 
+// import React from 'react';
+// import { GoogleLogin } from '@react-oauth/google';
+// import { jwtDecode } from 'jwt-decode';
+
+// interface GoogleLoginButtonProps {
+//     onSuccess?: (credentialResponse: CredentialResponse) => void;
+//     onError?: (errorMessage: string) => void;
+// }
+
+// interface CredentialResponse {
+//     credential?: string;
+//     clientId?: string;
+//     select_by?: string;
+// }
+
+// interface DecodedToken {
+//     email?: string;
+//     name?: string;
+//     picture?: string;
+//     exp?: number;
+// }
+
+// const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onSuccess, onError }) => {
+//     const handleSuccess = (credentialResponse: CredentialResponse) => {
+//         try {
+//             // Validate credential exists and is a string
+//             if (!credentialResponse.credential || typeof credentialResponse.credential !== 'string') {
+//                 throw new Error('Invalid Google credential format');
+//             }
+
+//             // Optional: Decode token to verify it's valid
+//             const decodedToken = jwtDecode<DecodedToken>(credentialResponse.credential);
+//             console.log('Decoded Google token:', decodedToken);
+
+//             // Verify token expiration
+//             if (decodedToken.exp && decodedToken.exp * 1000 < Date.now()) {
+//                 throw new Error('Google token has expired');
+//             }
+
+//             // Pass the full credential response to parent component
+//             if (onSuccess) {
+//                 onSuccess(credentialResponse);
+//             }
+
+//         } catch (error: any) {
+//             console.error('Google token validation failed:', error);
+//             const errorMessage = error.message || 'Failed to process Google credential';
+//             if (onError) {
+//                 onError(errorMessage);
+//             }
+//         }
+//     };
+
+//     const handleError = () => {
+//         const errorMessage = 'Google login failed. Please try again or use another method.';
+//         console.error(errorMessage);
+//         if (onError) {
+//             onError(errorMessage);
+//         }
+//     };
+
+//     return (
+//         <GoogleLogin
+//             onSuccess={handleSuccess}
+//             onError={handleError}
+//             useOneTap
+//             text="continue_with"
+//             shape="pill"
+//             size="large"
+//             auto_select
+//         />
+//     );
+// };
+
+// export default GoogleLoginButton;
 import React from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
@@ -171,6 +246,8 @@ interface DecodedToken {
     name?: string;
     picture?: string;
     exp?: number;
+    given_name?: string;
+    family_name?: string;
 }
 
 const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onSuccess, onError }) => {
@@ -181,13 +258,18 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onSuccess, onErro
                 throw new Error('Invalid Google credential format');
             }
 
-            // Optional: Decode token to verify it's valid
+            // Decode token to verify it's valid
             const decodedToken = jwtDecode<DecodedToken>(credentialResponse.credential);
             console.log('Decoded Google token:', decodedToken);
 
             // Verify token expiration
             if (decodedToken.exp && decodedToken.exp * 1000 < Date.now()) {
                 throw new Error('Google token has expired');
+            }
+
+            // Verify we have minimal required data
+            if (!decodedToken.email) {
+                throw new Error('Google token missing required user information');
             }
 
             // Pass the full credential response to parent component
@@ -221,6 +303,8 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onSuccess, onErro
             shape="pill"
             size="large"
             auto_select
+            theme="filled_blue"
+            logo_alignment="left"
         />
     );
 };

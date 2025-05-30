@@ -16,6 +16,7 @@ interface DecodedToken {
 }
 
 interface UserData {
+  profilePicture: string;
   email: string;
   userName: string;
   token: string;
@@ -38,7 +39,8 @@ export const login = async (email: string, password: string): Promise<UserData> 
         email: decodedToken.email || email,
         userName: decodedToken.userName || email.split("@")[0],
         token: data.token,
-        authProvider: "Email"
+        authProvider: "Email",
+        profilePicture: ""
       };
 
       sessionStorage.setItem("user", JSON.stringify(userData));
