@@ -20,6 +20,7 @@
 // // }
 
 // // export default Dashboard
+
 // import React from 'react';
 // import Sidebar from '../../Components/Sidebar';
 // import Navbar from '../../Components/Navbar';
@@ -54,6 +55,7 @@
 import React from 'react';
 import Navbar from '../../Components/Navbar';
 import { Outlet } from 'react-router-dom';
+import Footer from '../../Components/Footer';
 
 const Dashboard: React.FC = () => {
   return (
@@ -63,10 +65,11 @@ const Dashboard: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-auto">
-        <div className="p-6">
+       
           <Outlet />
+            <Footer/>
         </div>
-      </div>
+    
     </div>
   );
 };

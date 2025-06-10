@@ -1,6 +1,8 @@
 import { jwtDecode } from "jwt-decode";
 
 interface TokenPayload {
+  Picture: string | undefined;
+  Name: string;
   Id: number;
   Email: string;
   exp: number;

@@ -16,6 +16,7 @@ interface DecodedToken {
 }
 
 interface UserData {
+  roleId: number | undefined;
   profilePicture: string;
   email: string;
   userName: string;
@@ -40,6 +41,7 @@ export const login = async (email: string, password: string): Promise<UserData> 
         userName: decodedToken.userName || email.split("@")[0],
         token: data.token,
         authProvider: "Email",
+        roleId: data.roleId, 
         profilePicture: ""
       };
 
@@ -105,3 +107,4 @@ export const getUserName = (): string | null => {
   const user = getCurrentUser();
   return user ? user.userName : null;
 };
+

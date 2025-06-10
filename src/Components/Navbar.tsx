@@ -10,13 +10,12 @@ import {
   FaUser,
   FaBookmark,
   FaSignOutAlt,
-  FaSignInAlt // <<<< Make sure FaSignInAlt is imported
+  FaSignInAlt
 } from "react-icons/fa";
 import axios from "axios";
 import { logout as authServiceLogout } from "../Pages/Auth/AuthService";
 import Logo from "../assets/NCSLogo.jpg";
 import { toast } from "sonner";
-
 
 interface UserData {
   email: string;
@@ -24,6 +23,8 @@ interface UserData {
   profilePicture?: string;
   authProvider?: string;
 }
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const Navbar = () => {
   const [profileDropdown, setProfileDropdown] = useState(false);
@@ -130,9 +131,16 @@ const Navbar = () => {
     setProfileDropdown(false);
   };
 
+  const getFullProfilePictureUrl = (path?: string) => {
+    if (!path) return undefined;
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return path;
+    }
+    return `${API_BASE_URL}${path}`;
+  };
+
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50 w-full px-4 py-2 flex justify-between items-center">
-      {/* Left Section */}
       <div className="flex items-center gap-4">
         <img src={Logo} alt="Logo" className="h-10 w-auto" />
         <a
@@ -149,7 +157,6 @@ const Navbar = () => {
         </a>
       </div>
 
-      {/* Center Nav Links */}
       <ul className="hidden md:flex items-center space-x-6 text-sm font-medium text-gray-700">
         <li>
           <button
@@ -207,7 +214,6 @@ const Navbar = () => {
         </li>
       </ul>
 
-      {/* Right Section (User Avatar/Sign In) */}
       <div className="relative" ref={dropdownRef}>
         {isLoggedIn ? (
           <>
@@ -217,7 +223,7 @@ const Navbar = () => {
               </span>
               {profilePicture ? (
                 <img
-                  src={profilePicture}
+                  src={getFullProfilePictureUrl(profilePicture)}
                   alt="Profile"
                   className="w-9 h-9 rounded-full border-2 border-indigo-100 object-cover hover:scale-105 transition-transform"
                 />
@@ -284,8 +290,6 @@ const Navbar = () => {
     "
             />
           </button>
-
-
         )}
       </div>
     </nav>
