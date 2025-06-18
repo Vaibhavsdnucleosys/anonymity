@@ -5,11 +5,13 @@ import {
   FaUsers, FaHandsHelping, FaBookOpen, FaStar, FaPaperPlane
 } from 'react-icons/fa';
 import { toast } from 'sonner';
+// <<< NEW >>> Import useSearchParams to read URL query parameters
+import { useSearchParams } from 'react-router-dom';
 
 // Import your central API configuration file
 import { API_ENDPOINTS } from '../../API/apiConfig';
 
-// --- Interfaces ---
+// --- Interfaces (Unchanged) ---
 interface ReviewFormData {
   schoolYear: string;
   schoolName: string;
@@ -120,7 +122,7 @@ const YearPicker: React.FC<YearPickerProps> = ({ selectedYear, onChange }) => {
 };
 
 
-// --- Helper function & Initial State ---
+// --- Helper function & Initial State (Unchanged) ---
 const getCurrentSchoolYear = (): string => {
   const now = new Date();
   const year = now.getFullYear();
@@ -165,6 +167,10 @@ const WriteReview: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
 
+  // <<< NEW >>> Get search params from the URL
+  const [searchParams] = useSearchParams();
+  const schoolIdFromUrl = searchParams.get('schoolId');
+
   useEffect(() => {
     const fetchSchools = async () => {
       setIsLoadingSchools(true);
@@ -185,6 +191,22 @@ const WriteReview: React.FC = () => {
     };
     fetchSchools();
   }, []);
+
+  // <<< NEW >>> Effect to auto-select school based on URL parameter
+  // This runs after the schools have been fetched.
+  useEffect(() => {
+    // Check if we have a school ID from the URL and the list of schools is loaded
+    if (schoolIdFromUrl && schools.length > 0) {
+      // Find the school that matches the ID from the URL
+      // Note: URL params are strings, so we compare accordingly
+      const schoolToSelect = schools.find(school => school.id.toString() === schoolIdFromUrl);
+
+      // If a matching school is found, update the state to select it
+      if (schoolToSelect) {
+        handleSchoolSelect(schoolToSelect);
+      }
+    }
+  }, [schools, schoolIdFromUrl]); // Re-run this effect if schools or the URL param changes
 
   useEffect(() => {
     const fetchGrades = async () => {
@@ -258,7 +280,6 @@ const WriteReview: React.FC = () => {
 
       const payloadData = JSON.parse(atob(token.split('.')[1]));
       
-      // <<< FIX IS HERE: Changed from 'nameid' to 'id' to match your token >>>
       const idFromToken = payloadData.id;
       
       if (!idFromToken) {
@@ -349,6 +370,7 @@ const WriteReview: React.FC = () => {
 
   return (
     <div className="bg-[#f5f7ff] font-['Poppins',_sans_serif] text-[#070808] leading-relaxed min-h-screen py-8">
+      {/* ... The rest of the JSX is unchanged ... */}
       <div className="container mx-auto px-4">
         <form className="bg-white p-6 md:p-8 rounded-xl shadow-lg max-w-6xl mx-auto border border-gray-200/50" onSubmit={handleSubmit}>
           <h2 className="text-[#3a0ca3] font-bold text-2xl md:text-3xl mb-6 relative pb-3 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-[60px] after:h-1 after:bg-gradient-to-r after:from-[#4361ee] after:to-[#3a0ca3] after:rounded-full">
@@ -384,6 +406,7 @@ const WriteReview: React.FC = () => {
             </div>
           </div>
           
+          {/* ... The rest of your form fields ... */}
           <div className="bg-gray-50 p-4 rounded-xl mb-1 border border-gray-200/50">
             <h3 className="font-semibold text-[#3a0ca3] mb-3 text-lg flex items-center">
               <FaClipboardCheck className="mr-2 text-[#4361ee]" /> School Environment

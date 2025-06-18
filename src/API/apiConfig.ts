@@ -25,4 +25,9 @@ export const API_ENDPOINTS = {
     UpdateGrade: `${common_API_URL}Grade`,
     DeleteGrade:  `${common_API_URL}Grade`,
     AddReview: `${common_API_URL}Review/submit`,
+    SearchReviews: `${common_API_URL}Review/search`,
+    GetSchoolDetails: `${common_API_URL}School`,
+    GetAllReviews: `${common_API_URL}Review`,
+    GetReviewsBySchool: `${common_API_URL}Review/school`,
+    GetReviewsById: `${common_API_URL}Review`,
 }
